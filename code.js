@@ -33,46 +33,39 @@ var updateJokesMenu = function () {
 }
 
 var saveButton = document.getElementById('save')
-document.getElementById('tellJoke').value = window.localStorage.getItem('tellJoke')
-document.getElementById('tellSetup').value = window.localStorage.getItem('tellSetup')
-document.getElementById('tellPunchline').value = window.localStorage.getItem('tellPunchline')
-
 var saveNewJoke = function () {
   var tellJoke = document.getElementById('tellJoke').value
-  window.localStorage.setItem('tellJoke', tellJoke)
   var tellSetup = document.getElementById('tellSetup').value
-  window.localStorage.setItem('tellSetup', tellSetup)
   var tellPunchline = document.getElementById('tellPunchline').value
-  window.localStorage.setItem('tellPunchline', tellPunchline)
+  jokes[tellJoke] = {
+    setup: tellSetup,
+    punchline: tellPunchline
+  }
+  var stringifiedJokes = JSON.stringify(jokes)
+  window.localStorage.setItem('jokes', stringifiedJokes)
+  updatePage()
 }
 saveButton.addEventListener('click', saveNewJoke)
 
 var clearButton = document.getElementById('clear')
-document.getElementById('removedJoke').value = window.localStorage.getItem('removedJoke')
-
-var clearNewJoke = function () {
-  var removedJoke = document.getElementById('removedJoke').value
-  window.localStorage.setItem('removedJoke', removedJoke)
-  window.localStorage.clear()
+var clearJoke = function () {
+  var unlikeReason = document.getElementById('removedJoke').value
+  delete jokes[unlikeReason]
+  var stringifiedJokes = JSON.stringify(jokes)
+  window.localStorage.setItem('jokes', stringifiedJokes)
+  updatePage()
 }
-clearButton.addEventListener('click', clearNewJoke)
+clearButton.addEventListener('click', clearJoke)
 
 // Update the displayed joke, based on the requested joke
 var requestedJokeInput = document.getElementById('requested-joke')
 var jokeBox = document.getElementById('joke-box')
-var jokeResult = document.getElementById('setup-display')
-var punchlineResult = document.getElementById('punchline-display')
 var updateDisplayedJoke = function () {
-  var requestedJokeKey = requestedJokeInput.value
-  jokeBox.textContent = requestedJokeKey
-  if (requestedJokeKey === 'the horse') {
-    jokeResult.textContent = jokes['the horse'].setup
-    punchlineResult.textContent = jokes['the horse'].punchline
-  } else if (requestedJokeKey === 'Orion\'s pants') {
-    jokeResult.textContent = jokes['Orion\'s pants'].setup
-    punchlineResult.textContent = jokes['Orion\'s pants'].punchline
+  var joke = jokes[requestedJokeInput.value]
+  if (joke) {
+    jokeBox.innerHTML = '<p>' + joke.setup + '<p>' + '</p>' + joke.punchline + '</p>'
   } else {
-    jokeBox.textContent = 'No matching joke found.'
+    jokeBox.innerHTML = 'No matching joke found.'
   }
 }
 
@@ -80,6 +73,10 @@ var updateDisplayedJoke = function () {
 // page update functions, so that we
 // can call them all at once
 var updatePage = function () {
+  var stringifiedJokes = window.localStorage.getItem('jokes')
+  if (stringifiedJokes) {
+    jokes = JSON.parse(stringifiedJokes)
+  }
   updateJokesMenu()
   updateDisplayedJoke()
 }
@@ -90,12 +87,9 @@ var updatePage = function () {
 
 // Update the page immediately on startup
 updatePage()
-
 // ---------------
 // EVENT LISTENERS
 // ---------------
 
 // Keep the requested joke up-to-date
 requestedJokeInput.addEventListener('input', updateDisplayedJoke)
-jokeResult.addEventListener('input', updateDisplayedJoke)
-punchlineResult.addEventListener('input', updateDisplayedJoke)
